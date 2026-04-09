@@ -8,14 +8,22 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 # -----------------------------
 # MCP CONFIG (FIX YOUR PATH)
 # -----------------------------
+#local
 SERVERS = {
     "program-server": {
         "transport": "stdio",
-        "command": r"python",
-        "args": [r"main.py"]
+        "command": r"D:\Python\mcp-program-server\venv\Scripts\python.exe",
+        "args": [r"D:\Python\mcp-program-server\main.py"]
     }
 }
-
+#Production
+# SERVERS = {
+#     "program-server": {
+#         "transport": "stdio",
+#         "command": r"Python",
+#         "args": [r"main.py"]
+#     }
+# }
 st.set_page_config(page_title="Smart Program Chat", layout="centered")
 st.title("🧠 Smart Program Chat")
 
