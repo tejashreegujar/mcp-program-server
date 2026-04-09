@@ -9,4 +9,4 @@ mcp = FastMCP("Program Server")
 mcp.tool()(program_tool)
 
 if __name__ == "__main__":
-    mcp.run()
+     mcp.run(transport="streamable_http", host="0.0.0.0", port=8000)
