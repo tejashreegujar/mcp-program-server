@@ -19,8 +19,9 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 #Production
 SERVERS = {
     "program-server": {
-        "transport": "streamable_http",
-        "url": "http://localhost:8000/mcp"
+        "transport": "stdio",
+        "command": r"Python",
+        "args": [r"main.py"]
     }
 }
 st.set_page_config(page_title="Smart Program Chat", layout="centered")
