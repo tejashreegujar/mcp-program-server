@@ -11,8 +11,8 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 SERVERS = {
     "program-server": {
         "transport": "stdio",
-        "command": r"D:\Python\mcp-program-server\venv\Scripts\python.exe",
-        "args": [r"D:\Python\mcp-program-server\main.py"]
+        "command": r"python",
+        "args": [r"main.py"]
     }
 }
 
