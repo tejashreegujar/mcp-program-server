@@ -1,66 +1,61 @@
 import httpx
 import os
+from prefect import flow, task
 
-# ✅ Load from environment (SAFE)
-API_KEY ="kz0PVV5xAR3VO4RofsljMqADFTxGGRttaWQ6m2QJj1h8hfOuEH5KFi8msIFq8C2p"
+API_KEY = "kz0PVV5xAR3VO4RofsljMqADFTxGGRttaWQ6m2QJj1h8hfOuEH5KFi8msIFq8C2p"
+BASE_URL = "http://iapi.dev.flexoffers.com/agents/v1"
 
-BASE_URL = "http://iapi.dev.flexoffers.com/agents/v1/programs"
-
-
-async def get_program_details(programId: str):
-    """
-    Fetch program details from FlexOffers API
-    """
-
-    # 🔐 Validate API key
-    if not API_KEY:
-        return {
-            "error": "API_KEY missing. Check your .env file.",
-            "programId": programId
-        }
+@task
+async def get_program(programId: str):
 
     headers = {
         "x-api-key": API_KEY,
         "Accept": "application/json"
     }
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        try:
-            response = await client.get(
-                f"{BASE_URL}/{programId}",
-                headers=headers
-            )
+    async with httpx.AsyncClient() as client:
 
-            response.raise_for_status()
-            data = response.json()
+        urls = [
+            f"{BASE_URL}/programs/{programId}",
+            f"{BASE_URL}/program/{programId}",
+            f"{BASE_URL}/program?programId={programId}"
+        ]
 
-            # ✅ Clean structured response
-            return {
-                "success": True,
-                "programId": programId,
-                "data": data
-            }
+        for url in urls:
+            try:
+                r = await client.get(url, headers=headers)
+                if r.status_code == 200:
+                    return {"working_url": url, "data": r.json()}
+            except:
+                continue
 
-        except httpx.HTTPStatusError as e:
-            return {
-                "success": False,
-                "error": f"HTTP {e.response.status_code}",
-                "details": e.response.text,
-                "programId": programId
-            }
+        return {"error": "All endpoints failed", "programId": programId}
+@task
+async def get_payout(programId: str):
+    async with httpx.AsyncClient() as client:
+        r = await client.get(
+            f"{BASE_URL}/programs/{programId}/payout",
+            headers={"x-api-key": API_KEY}
+        )
+        return r.json()
 
-        except httpx.RequestError as e:
-            return {
-                "success": False,
-                "error": "Connection failed",
-                "details": str(e),
-                "programId": programId
-            }
+@task
+async def get_status():
+    async with httpx.AsyncClient() as client:
+        r = await client.get(
+            f"{BASE_URL}/program/status",
+            headers={"x-api-key": API_KEY}
+        )
+        return r.json()
 
-        except Exception as e:
-            return {
-                "success": False,
-                "error": "Unexpected error",
-                "details": str(e),
-                "programId": programId
-            }
+@flow
+async def program_flow(programId: str, action: str):
+    if action == "payout":
+        return await get_payout(programId)
+    elif action == "status":
+        return await get_status()
+    else:
+        return await get_program(programId)
+
+async def program_tool(programId: str = "", action: str = "details"):
+    return await program_flow(programId, action)
